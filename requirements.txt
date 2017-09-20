@@ -1,0 +1,6 @@
+zetup >= 0.2.42
+packaging >= 16.8
+path.py >= 10.3
+furl >= 1.0
+requests >= 2.18
+beautifulsoup4 >= 4.6
