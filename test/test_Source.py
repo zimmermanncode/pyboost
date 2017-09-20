@@ -6,7 +6,7 @@ from packaging.version import Version
 from path import Path
 import requests
 
-from Boost.Source import BOOST_URL
+from Boost.Source import BOOST_URL, MIN_BOOST_VERSION
 from Boost import Source
 import Boost
 
@@ -17,6 +17,10 @@ def test_import():
 
 def test_BOOST_URL():
     assert BOOST_URL == furl('http://www.boost.org')
+
+
+def test_MIN_BOOST_VERSION(boost_versions):
+    assert MIN_BOOST_VERSION == min(boost_versions)
 
 
 class TestMeta(object):
@@ -71,12 +75,12 @@ class TestSource(object):
             assert (Source(version).boost_lib_version ==
                     str(version).replace('.', '_'))
 
-    def test_path(self, boost_source_rootpath, boost_test_sources):
+    def test_path(self, boost_test_sources, boost_source_rootpath):
         for source in boost_test_sources:
             assert source.path == boost_source_rootpath / (
                 'boost_' + str(source.version).replace('.', '_'))
 
-    def test_archive(self, boost_source_rootpath, boost_test_sources):
+    def test_archive(self, boost_test_sources, boost_source_rootpath):
         for source in boost_test_sources:
             assert source.archive == boost_source_rootpath / (
                 'boost_' + str(source.version).replace('.', '_') + '.tar.bz2')
@@ -101,3 +105,19 @@ class TestSource(object):
             else:
                 raise RuntimeError("no .tar.bz2 link found in {}"
                                    .format(release_url))
+
+    def test_download(self, boost_test_sources, boost_source_rootpath):
+        for source in boost_test_sources:
+            source.archive.remove_p()
+            archive = source.download()
+            assert archive == Path(archive).realpath() == source.archive
+            assert archive.isfile()
+
+    def test_extract(self, boost_test_sources, boost_source_rootpath):
+        for source in boost_test_sources:
+            source.path.rmtree_p()
+            path = source.extract()
+            assert path == Path(path).realpath() == source.path
+            assert path.isdir()
+            for ext in ('.bat', '.sh'):
+                assert (path / 'bootstrap' + ext).isfile()
