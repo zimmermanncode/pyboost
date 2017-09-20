@@ -82,6 +82,8 @@ class Meta(zetup.meta):
     def LATEST(cls):
         """
         :class:`Boost.Source` instance for latest Boost release version.
+
+        Gets current directory as root path
         """
         return Source(cls.LATEST_VERSION)
 
@@ -91,16 +93,22 @@ class Source(with_metaclass(Meta, zetup.object)):
     Handler for downloading and building a Boost source release.
     """
 
-    def __init__(self, version, rootpath='.'):
+    def __init__(self, version=None, rootpath='.'):
         """
         Define absolute Boost source :attr:`.path` for given `version`.
 
+        :param version:
+           ``'major.minor.micro'``. Defaults to latest available release
+        :param rootpath:
+           Directory used for downloading and extracting source archive.
+           Defaults to current working directory
+
         Source path means directory of extracted Boost source archive under
-        `rootpath` (current directory by default), with naming scheme::
+        `rootpath`, with naming scheme::
 
            boost_major_minor_micro/
         """
-        self.version = Version(str(version))
+        self.version = Version(str(version or Source.LATEST_VERSION))
         rootpath = Path(rootpath).realpath()
         self.path = rootpath / 'boost_' + self.boost_lib_version
 
