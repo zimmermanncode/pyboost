@@ -7,12 +7,12 @@ ROOT = os.path.dirname(os.path.realpath(__file__))
 
 
 setup(
-    name='Boost',
+    name='pyboost',
     description="C++Boost as a Python package",
 
     author="Stefan Zimmermann",
     author_email="user@zimmermann.co",
-    url="https://github.com/zimmermanncode/Boost",
+    url="https://github.com/zimmermanncode/pyboost",
 
     license='LGPLv3',
 
@@ -45,7 +45,8 @@ setup(
         'Topic :: Utilities',
     ],
     keywords=[
-        'boost', 'c++', 'cpp', 'cxx', 'cplusplus',
+        'pyboost', 'boost', 'python3', 'packaging',
+        'c++', 'cpp', 'cxx', 'cplusplus',
         'libraries', 'libs', 'library', 'lib',
         'boostpython',
     ],
