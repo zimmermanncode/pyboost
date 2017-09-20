@@ -71,7 +71,7 @@ class Meta(zetup.meta):
             raise RuntimeError("no Boost release links found in {}"
                                .format(history_url))
 
-        urls = {}
+        result = {}
         while release_link:
             next_release_link = download_link = None
             for link in ilinks:
@@ -82,9 +82,9 @@ class Meta(zetup.meta):
                     download_link = link
             if download_link:
                 url = URL(str(BOOST_URL) + release_link.get('href'))
-                urls[Version(release_link.text.split()[1])] = url
+                result[Version(release_link.text.split()[1])] = url
             release_link = next_release_link
-        return urls
+        return result
 
     @property
     def VERSIONS(cls):
