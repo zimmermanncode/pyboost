@@ -6,6 +6,7 @@ from path import Path
 import pytest
 import requests
 
+from Boost.Source import MIN_BOOST_VERSION
 import Boost
 
 
@@ -33,7 +34,8 @@ def boost_release_links():
             if re.match(r'^Download$', link.text.strip()):
                 download_link = link
         if download_link:
-            result.append(release_link)
+            if Version(release_link.text.split()[1]) >= MIN_BOOST_VERSION:
+                result.append(release_link)
         release_link = next_release_link
     return result
 
