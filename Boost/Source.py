@@ -56,13 +56,35 @@ class Meta(zetup.meta):
     def RELEASE_URLS(cls):
         """
         ``dict`` of available Boost release versions and release page URLs.
+
+        All (old) releases without download link are excluded
         """
-        response = requests.get(str(BOOST_URL) + '/users/history')
+        history_url = URL(str(BOOST_URL) + '/users/history')
+        response = requests.get(history_url)
         html = BeautifulSoup(response.text, 'html5lib')
-        return {Version(link.text.split()[1]):
-                URL(str(BOOST_URL) + link.get('href'))
-                for link in html.find_all('a')
-                if re.match(r'^Version\s+[0-9.]+$', link.text.strip())}
+        ilinks = iter(html.find_all('a'))
+        for link in ilinks:
+            if re.match(r'^Version\s+[0-9.]+$', link.text.strip()):
+                release_link = link
+                break
+        else:
+            raise RuntimeError("no Boost release links found in {}"
+                               .format(history_url))
+
+        urls = {}
+        while release_link:
+            next_release_link = download_link = None
+            for link in ilinks:
+                if re.match(r'^Version\s+[0-9.]+$', link.text.strip()):
+                    next_release_link = link
+                    break
+                if re.match(r'^Download$', link.text.strip()):
+                    download_link = link
+            if download_link:
+                url = URL(str(BOOST_URL) + release_link.get('href'))
+                urls[Version(release_link.text.split()[1])] = url
+            release_link = next_release_link
+        return urls
 
     @property
     def VERSIONS(cls):
