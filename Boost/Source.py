@@ -43,6 +43,8 @@ MSVC = platform.python_compiler().startswith('MSC')
 
 BOOST_URL = URL('http://www.boost.org')
 
+MIN_BOOST_VERSION = Version('1.42.0')
+
 
 class Meta(zetup.meta):
     """
@@ -81,8 +83,10 @@ class Meta(zetup.meta):
                 if re.match(r'^Download$', link.text.strip()):
                     download_link = link
             if download_link:
-                url = URL(str(BOOST_URL) + release_link.get('href'))
-                result[Version(release_link.text.split()[1])] = url
+                version = Version(release_link.text.split()[1])
+                if version >= MIN_BOOST_VERSION:
+                    url = URL(str(BOOST_URL) + release_link.get('href'))
+                    result[Version(release_link.text.split()[1])] = url
             release_link = next_release_link
         return result
 
@@ -166,17 +170,23 @@ class Source(with_metaclass(Meta, zetup.object)):
     def download(self):
         """
         Download ``.tar.bz2`` archive to parent directory of :attr:`.path`.
+
+        :return: Absolute path of downloaded archive
         """
         response = requests.get(self.download_url, stream=True)
         with self.archive.open('wb') as file:
             shutil.copyfileobj(response.raw, file)
+        return self.archive
 
     def extract(self):
         """
         Extract downloaded ``.tar.bz2`` archive.
+
+        :return: Absolute path of extracted source directory
         """
-        with tarfile.open(self.archive) as tar:
+        with self.path.dirname(), tarfile.open(self.archive) as tar:
             tar.extractall()
+        return self.path
 
     def bootstrap(self):
         """
