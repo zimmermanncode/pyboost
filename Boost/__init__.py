@@ -21,4 +21,7 @@ C++Boost as a Python package.
 
 from .Source import Source
 
+# __version__ module is created by setuptools_scm during setup
+from .__version__ import version as __version__
+
 __all__ = ('Source', )
