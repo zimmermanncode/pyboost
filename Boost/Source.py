@@ -19,7 +19,6 @@
 Download and build Boost source releases with :class:`Boost.Source`.
 """
 
-from functools import lru_cache
 import platform
 import re
 import shutil
@@ -27,6 +26,7 @@ import tarfile
 
 from bs4 import BeautifulSoup
 from furl import furl as URL
+from moretools import cached
 from packaging.version import Version
 from path import Path
 from six import with_metaclass
@@ -77,7 +77,7 @@ class Meta(zetup.meta):
     """
 
     @property
-    @lru_cache()
+    @cached
     def RELEASE_URLS(cls):
         """
         ``dict`` of available Boost release versions and release page URLs.

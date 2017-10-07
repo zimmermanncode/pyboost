@@ -1,6 +1,7 @@
 beautifulsoup4 >= 4.6
 furl >= 1.0
 html5lib >= 0.999999999
+moretools >= 0.1.8
 packaging >= 16.8
 path.py >= 10.4
 requests >= 2.18
