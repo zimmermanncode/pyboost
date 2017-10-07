@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 
 language: python
 python:
@@ -9,7 +9,13 @@ python:
   - '3.6'
   - pypy
 
+before_install:
+  - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update
+
 install:
+  - sudo apt-get install --yes g++-7
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 42
   - pip install -U pip setuptools
   - pip install -e .
   - pip install -U -r requirements.test.txt
