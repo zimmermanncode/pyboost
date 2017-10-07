@@ -19,6 +19,7 @@
 Download and build Boost source releases with :class:`Boost.Source`.
 """
 
+from functools import lru_cache
 import platform
 import re
 import shutil
@@ -38,7 +39,28 @@ __all__ = ('Source', )
 BITS = int(platform.architecture()[0].split('bit')[0])
 assert BITS in (32, 64)
 
-MSVC = platform.python_compiler().startswith('MSC')
+
+def _toolset():
+    """
+    Determine compiler toolset for Boost.
+    """
+    supported = {
+        'GCC': 'gcc',
+        'MSC': 'msvc',
+    }
+    compiler = platform.python_compiler()
+    for key, name in  supported.items():
+        if compiler.startswith(key):
+            return name
+
+    raise RuntimeError("Could not determine compiler toolset for Boost from "
+                       "platform.python_compiler() {!r}. Supported: {!r}"
+                       .format(compiler, supported))
+
+
+TOOLSET = _toolset()
+
+MSVC = TOOLSET == 'msvc'
 
 
 BOOST_URL = URL('http://www.boost.org')
@@ -55,6 +77,7 @@ class Meta(zetup.meta):
     """
 
     @property
+    @lru_cache()
     def RELEASE_URLS(cls):
         """
         ``dict`` of available Boost release versions and release page URLs.
@@ -111,7 +134,7 @@ class Meta(zetup.meta):
 
         Gets current directory as root path
         """
-        return Source(cls.LATEST_VERSION)
+        return cls(cls.LATEST_VERSION)
 
 
 class Source(with_metaclass(Meta, zetup.object)):
@@ -134,7 +157,7 @@ class Source(with_metaclass(Meta, zetup.object)):
 
            boost_major_minor_micro/
         """
-        self.version = Version(str(version or Source.LATEST_VERSION))
+        self.version = Version(str(version or type(self).LATEST_VERSION))
         rootpath = Path(rootpath).realpath()
         self.path = rootpath / 'boost_' + self.boost_lib_version
 
@@ -173,6 +196,8 @@ class Source(with_metaclass(Meta, zetup.object)):
 
         :return: Absolute path of downloaded archive
         """
+        print("Downloading {!r} to {!r}"
+              .format(self.download_url, self.path.dirname()))
         response = requests.get(self.download_url, stream=True)
         with self.archive.open('wb') as file:
             shutil.copyfileobj(response.raw, file)
@@ -184,6 +209,7 @@ class Source(with_metaclass(Meta, zetup.object)):
 
         :return: Absolute path of extracted source directory
         """
+        print("Extracting {!r}".format(self.archive))
         with self.path.dirname(), tarfile.open(self.archive) as tar:
             tar.extractall()
         return self.path
@@ -195,10 +221,11 @@ class Source(with_metaclass(Meta, zetup.object)):
         Auto-selects ``./bootstrap.bat`` for VisualC++ builds and
         ``./bootstrap.sh`` for GCC
         """
-        script = MSVC and ['booststrap.bat'] or ['bash', 'bootstrap.sh']
+        script = MSVC and ['bootstrap.bat'] or ['bash', 'bootstrap.sh']
         with self.path as cwd:
+            print("Running {!r} in {!r}".format(script, cwd))
             if zetup.call(script):
-                raise RuntimeError("Failed to run {!r} in {}"
+                raise RuntimeError("Failed to run {!r} in {!r}"
                                    .format(script, cwd))
 
     def b2(self, args=None):
@@ -208,13 +235,17 @@ class Source(with_metaclass(Meta, zetup.object)):
         Auto-adds ``link=shared`` and ``address-model=32`` or ``=64`` to
         (optionally) given `args` sequence
         """
-        command = [Path('./b2'), 'link=shared',
-                   'address-model={}'.format(BITS)]
+        if MSVC:  # pragma: no cover
+            _b2 = Path(__file__).realpath().dirname() / 'call_b2.cmd'
+        else:  # pragma: no cover
+            _b2 = Path('.') / 'b2'
+        command = [str(_b2), 'link=shared', 'address-model={}'.format(BITS)]
         if args is not None:
             command += args
         with self.path as cwd:
+            print("Running {!r} in {!r}".format(command, cwd))
             if zetup.call(command):
-                raise RuntimeError("Failed to run {!r} in {}"
+                raise RuntimeError("Failed to run {!r} in {!r}"
                                    .format(command, cwd))
 
     def build(self):

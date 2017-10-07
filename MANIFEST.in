@@ -4,6 +4,7 @@ include COPYING.LESSER
 include requirements.txt
 include requirements.*.txt
 
+recursive-include Boost *.cmd
 recursive-include test *.py
 
 exclude .hg*
