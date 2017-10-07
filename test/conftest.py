@@ -10,6 +10,11 @@ from Boost.Source import MIN_BOOST_VERSION
 import Boost
 
 
+# avoid collecting test_*.py files inside Boost source directories from
+# previous test runs
+collect_ignore = Path(__file__).dirname().glob('boost_*')
+
+
 @pytest.fixture
 def boost_release_links():
     history_url = 'http://www.boost.org/users/history'
@@ -22,7 +27,7 @@ def boost_release_links():
             break
     else:
         raise RuntimeError("no Boost release links found in {}"
-                               .format(history_url))
+                           .format(history_url))
 
     result = []
     while release_link:
@@ -44,7 +49,7 @@ def boost_release_links():
 def boost_versions(boost_release_links):
     return [Version(re.match(r'^Version\s+(?P<version>[0-9.]+)$',
                              link.text.strip())
-                    ['version'])
+                    .group('version'))
             for link in boost_release_links]
 
 
@@ -55,5 +60,10 @@ def boost_source_rootpath():
 
 @pytest.fixture
 def boost_test_sources(boost_source_rootpath, boost_versions):
-    return [Boost.Source(version, rootpath=boost_source_rootpath)
-            for version in (min(boost_versions), max(boost_versions))]
+    result = []
+    for version in (min(boost_versions), max(boost_versions)):
+        source = Boost.Source(version, rootpath=boost_source_rootpath)
+        source.archive.remove_p()
+        source.path.rmtree_p()
+        result.append(source)
+    return result
