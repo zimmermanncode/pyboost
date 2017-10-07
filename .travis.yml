@@ -1,0 +1,20 @@
+sudo: false
+
+language: python
+python:
+  - '2.7'
+  - '3.3'
+  - '3.4'
+  - '3.5'
+  - '3.6'
+  - pypy
+
+install:
+  - pip install -U pip setuptools
+  - pip install -e .
+  - pip install -U -r requirements.test.txt
+  - pip install -U tox tox-travis
+
+script:
+  - py.test -vv test --cov=Boost --cov-report=term-missing --cov-fail-under=100
+  - tox -rv
