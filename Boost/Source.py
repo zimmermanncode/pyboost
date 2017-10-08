@@ -22,6 +22,7 @@ Download and build Boost source releases with :class:`Boost.Source`.
 import platform
 import re
 import shutil
+import sysconfig
 import tarfile
 
 from bs4 import BeautifulSoup
@@ -232,14 +233,18 @@ class Source(with_metaclass(Meta, zetup.object)):
         """
         Run ``./b2`` binary in extracted Boost source release.
 
-        Auto-adds ``link=shared`` and ``address-model=32`` or ``=64`` to
-        (optionally) given `args` sequence
+        Auto-adds ``toolset=gcc`` or ``=msvc``, ``address-model=32`` or
+        ``=64``, ``include=`` with Python include path, and ``link=shared``
+        to (optionally) given `args` sequence
         """
         if MSVC:  # pragma: no cover
             _b2 = Path(__file__).realpath().dirname() / 'call_b2.cmd'
         else:  # pragma: no cover
             _b2 = Path('.') / 'b2'
-        command = [str(_b2), 'link=shared', 'address-model={}'.format(BITS)]
+        command = [str(_b2), 'toolset={}'.format(TOOLSET),
+                   'address-model={}'.format(BITS),
+                   'include={}'.format(sysconfig.get_path('include')),
+                   'link=shared']
         if args is not None:
             command += args
         with self.path as cwd:
