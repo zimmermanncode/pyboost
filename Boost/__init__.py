@@ -30,11 +30,11 @@ from .__version__ import version as __version__
 __all__ = ('Source', )
 
 
-CAREFREE_HOME = (Path('~').expanduser() / '.carefree').mkdir_p()
+CAREFREE_HOME = (Path('~').expanduser() / '.carefree').makedirs_p()
 
-CAREFREE_BOOST_HOME = (CAREFREE_HOME / 'boost').mkdir_p()
+CAREFREE_BOOST_HOME = (CAREFREE_HOME / 'boost').makedirs_p()
 
-CAREFREE_BOOST_CACHE = (CAREFREE_BOOST_HOME / '.cache').mkdir_p()
+CAREFREE_BOOST_CACHE = (CAREFREE_BOOST_HOME / '.cache').makedirs_p()
 
 
 def resolve(version=None):
@@ -60,7 +60,7 @@ def resolve(version=None):
         source.download()
     source.extract()
     source.build()
-    source.install(prefix=prefix.mkdir_p())
+    source.install(prefix=prefix.makedirs_p())
     return prefix, source
 
 
