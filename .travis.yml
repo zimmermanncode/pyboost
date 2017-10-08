@@ -22,5 +22,6 @@ install:
   - pip install -U tox tox-travis
 
 script:
+  - python -c "import Boost"
   - py.test -vv test --cov=Boost --cov-report=term-missing --cov-fail-under=100
   - tox -rv
