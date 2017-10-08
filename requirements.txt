@@ -5,4 +5,5 @@ moretools >= 0.1.8
 packaging >= 16.8
 path.py >= 10.4
 requests >= 2.18
+zcons
 zetup >= 0.2.42
